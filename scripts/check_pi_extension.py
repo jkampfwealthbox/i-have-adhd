@@ -153,12 +153,28 @@ class RpcClient:
             raise RuntimeError(f"Agent RPC exited with {return_code}: {stderr}")
 
 
+_SECRET_ENV_PREFIXES = (
+    "AWS_",
+    "AZURE_",
+    "GOOGLE_",
+    "GCLOUD_",
+    "GCP_",
+    "SSH_",
+    "GPG_",
+    "GITHUB_",
+    "GITLAB_",
+)
+_SECRET_ENV_SUFFIXES = ("_API_KEY", "_TOKEN", "_SECRET")
+_SECRET_ENV_NAMES = {"ANTHROPIC_AUTH_TOKEN", "OPENAI_ACCESS_TOKEN"}
+
+
 def build_isolated_env(agent_dir: str) -> dict[str, str]:
     env = {
         key: value
         for key, value in os.environ.items()
-        if not key.endswith("_API_KEY")
-        and key not in {"ANTHROPIC_AUTH_TOKEN", "OPENAI_ACCESS_TOKEN"}
+        if not key.startswith(_SECRET_ENV_PREFIXES)
+        and not key.endswith(_SECRET_ENV_SUFFIXES)
+        and key not in _SECRET_ENV_NAMES
     }
     env.update(
         {
